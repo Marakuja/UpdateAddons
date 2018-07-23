@@ -1,10 +1,10 @@
 # update-addons.ps1 Script
 
 - [update-addons.ps1 Script](#update-addonsps1-script)
-    - [A simple script to keep your World of Warcraft Addons up to date](#a-simple-script-to-keep-your-world-of-warcraft-addons-up-to-date)
-    - [Usage](#usage)
-        - [addons.csv](#addonscsv)
-    - [Project layout](#project-layout)
+  - [A simple script to keep your World of Warcraft Addons up to date](#a-simple-script-to-keep-your-world-of-warcraft-addons-up-to-date)
+  - [Usage](#usage)
+    - [addons.csv](#addonscsv)
+  - [Project layout](#project-layout)
 
 ## A simple script to keep your World of Warcraft Addons up to date
 
@@ -14,11 +14,11 @@ My script is heavily copied from the ideas from Peter Provost's [update-addons.p
 
 ## Usage
 
-This addon uses a csv file to manage addon information you want to keep updated. Normally this is stored in the same path as the `update-addons.ps1` file.
+This addon uses a csv file to manage addon information you want to keep updated. This has to be stored in the same path as the `update-addons.ps1` file.
 
-Use `UpdateAddons -scan.bat` to see which addons are currently stored in your WoW/Interface/Addons directory to configure the csv file.
+Use `UpdateAddons -scan.bat` to see which addons are currently stored in your WoW/Interface/Addons directory to help you configure the csv file.
 
-To run, execute `update-addons.ps1` in powershell or click `UpdateAddons.bat`.
+To run, execute `update-addons.ps1` in powershell or doubleclick `UpdateAddons.bat`.
 
 ### addons.csv
 
@@ -40,14 +40,17 @@ e.g. for Weakauras you have the following data in the file (from url: `https://w
 >
 >WeakAuras,curseforge,weakauras-2
 
+See example file in `data\addons.csv`
+
 ## Project layout
 
 Just as a reference: My projects are laid out like this
 
-| folder  | description                                |
-| ------- | ------------------------------------------ |
-| build   | output from build.bat                      |
-| code    | here goes all the code                     |
-| scripts | here goes all the development scripts used |
+| folder  | description                                 |
+| ------- | ------------------------------------------- |
+| build   | output from build.bat                       |
+| code    | all the code files                          |
+| data    | all not code data                           |
+| scripts | all the development scripts, also build.bat |
 
 If you wonder about the `shell.bat`: Read the blog post from Anthony Reddan [here](http://anthonyreddan.com/active-project-shell/). Long story short: It is a way to setup the command line for this project and is only used to get the right path when opening up my dev commandline :).

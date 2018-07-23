@@ -3,15 +3,15 @@
 .SYNOPSIS
 Updates World of Warcraft addons to the latest version
 .DESCRIPTION
-use update-addons with your update-addons.csv file you have to preconfigure!
+use updateaddons with your addons.csv file you have to preconfigure!
 .PARAMETER scan
 [switch] scan - compares the contents of your csv file with your WoW Addons directories, default: false
 .PARAMETER debug
-[switch] debug - get some more debug information
+[switch] debug - get some more debug information, default: false
 .PARAMETER addon
-[string] addon - only check a specific addon given in your csv
+[string] addon - only check a specific addon given in your csv, default: empty
 .EXAMPLE
-update-addons, update-addons -scan -debug, update-addons -addon "BigWigs"
+updateaddons, updateaddons -scan -debug, updateaddons -addon "BigWigs"
 .NOTES
 This script scans your registry for the installation path of World of Warcraft and if everything fails defaults to "C:\Program Files\World of Warcraft\". Please bear in mind, this script is not perfect!
 #>
@@ -24,8 +24,18 @@ param (
 
 # path to the addons.csv
 $manifestFile = ".\addons.csv"
-if (-not (Test-Path $manifestFile)) {throw "You need to create an addons.csv to your script location!"}
+if (-not (Test-Path $manifestFile)) {
+    throw "You need to create an addons.csv to your script location!"
+}
 $manifest = Import-Csv $manifestFile
+
+# check if 7z is installed
+if (Test-Path "$env:ProgramFiles\7-Zip\7z.exe") {
+    Set-Alias 7z "$env:ProgramFiles\7-Zip\7z.exe"
+}
+else {
+    throw "You need to have 7z installed to $env:ProgramFiles\7-Zip\7z.exe"
+}
 
 # get current World of Warcraft installation path
 if (test-path "HKLM:\SOFTWARE\Wow6432Node\Blizzard Entertainment\World of Warcraft") {
@@ -42,9 +52,9 @@ else {
 $wowAddonDir = Join-Path $wowDir "Interface\Addons"
 
 # temp store location for downloaded files
-$tempDir = Join-Path $env:TEMP "PsWowUpdater"
-if (-not (Test-Path $tempDir)) { 
-    New-Item -Type Directory -Path $tempDir
+$tempDir = Join-Path $env:TEMP "UpdateAddons"
+if (-not (Test-Path $tempDir)) {
+    New-Item -Type Directory -Path $tempDir | Out-Null
 }
 
 # scan the Interface/Addon directory and compare the contents with the contents of $manifestFile
@@ -57,28 +67,26 @@ if ($scan.isPresent) {
 
     Write-Output "Not configured"
 
-    Get-ChildItem $wowAddonDir | Where-Object { 
+    Get-ChildItem $wowAddonDir | Where-Object {
         $_.PSIsContainer -and $_.Name -notmatch "Blizzard"
     } | Where-Object {
-        -not $set.ContainsKey($_.Name) 
-    } | ForEach-Object { 
+        -not $set.ContainsKey($_.Name)
+    } | ForEach-Object {
         Write-Output $_.Name
     }
 
     Write-Output ""
 
     Write-Output "Not installed"
-    $set.Keys | Where-Object { 
-        -not (Test-Path "$wowAddonDir\$_") 
+    $set.Keys | Where-Object {
+        -not (Test-Path "$wowAddonDir\$_")
     }
 
-    PAUSE
     return
 }
 
 # webclient used for getting the files
 $wc = New-Object System.Net.WebClient
-$wc.Headers.Add("user-agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.0.4) Gecko/2008102920 Firefox/3.0.4")
 
 # name of the file created in every addon directory tracking current version information
 $stateFile = "PSUpdateAddons.state"
@@ -96,19 +104,17 @@ function update-addon {
     downloadextract-addon -uri $url -tempFile $tempFilePath
 }
 
-Set-Alias 7z "$env:ProgramFiles\7-Zip\7z.exe"
-
 function downloadextract-addon {
     param (
         $uri = $(throw "uri required"),
         $tempFile = $(throw "tempFile required")
     )
 
-    Write-Output "`tDownloading $uri..." -noNewLine
+    Write-Output "`tDownloading $uri..."
     $wc.DownloadFile( $uri, $tempFile )
-    Write-Output "done."
+    Write-Output "`tdone."
 
-    Write-Output "`tExtracting Archive..." -noNewLine
+    Write-Output "`tExtracting Archive..."
     if ($verbose) {
         7z x $tempFile "-o$wowAddonDir" "-y"
     }
@@ -116,17 +122,17 @@ function downloadextract-addon {
         7z x $tempFile "-o$wowAddonDir" "-y" *>$null
     }
 
-    Write-Output "done."
+    Write-Output "`tdone."
 
-    Write-Output "`tDeleting file..." -noNewLine
+    Write-Output "`tDeleting file..."
     Remove-Item $tempFile
-    Write-Output "done."
+    Write-Output "`tdone."
 }
 
 #########################################################################
 # Updater functions
 #
-# These functions are named with a special form that enables 
+# These functions are named with a special form that enables
 # dynamic calling based on the source specified in the CSV file
 #
 
@@ -136,12 +142,12 @@ function update-wowi {
         $uid = $(throw "You must provide the addon UID")
     )
 
-    Write-Output "$name - wowinterface.com $uid"
+    Write-Output "$name - wowinterface.com - $uid"
 
     $addonPath = Join-Path $wowAddonDir $name
     $stateFilePath = Join-Path $addonPath $stateFile
     $localVer = ""
-    if (Test-Path $stateFilePath) { 
+    if (Test-Path $stateFilePath) {
         $localVer = (Get-Content $stateFilePath)
     }
 
@@ -155,7 +161,7 @@ function update-wowi {
     if ($localVer -ne $remoteVer) {
         Write-Output "`tUpdate required: Current ver=$localVer, Remote ver=$remoteVer"
         update-addon -url $downloadUrl -fileName $fileName
-        $remoteVer > $stateFilePath
+        Set-Content -Value $remoteVer -Path $stateFilePath -Force
     }
     else {
         Write-Output "`tAddon up-to-date. Skipping."
@@ -174,14 +180,14 @@ function update-curseforge {
     $addonPath = Join-Path $wowAddonDir $name
     $stateFilePath = Join-Path $addonPath $stateFile
     $lastUrl = ""
-    if (Test-Path $stateFilePath) { 
+    if (Test-Path $stateFilePath) {
         $lastUrl = (Get-Content $stateFilePath)
     }
 
     # Screenscrape out the links...
 
     $html = $wc.DownloadString("$urlBase/wow/addons/$uid/download")
-    $tmp = ($html -match ".*download__link.*=`"(?<url>.*)`">.*")
+    $tmp = ($html -match ".*class=`"download__link`".*=`"(?<url>.*)`">.*")
     if ($tmp -eq $false) {
         Write-Output "ERROR PARSING CURSEFORGE HTML!"
         return
@@ -189,17 +195,22 @@ function update-curseforge {
 
     $url_path = $matches["url"]
     $currentUrl = "$urlBase$url_path"
-    $filename = $currentUrl.Split("/")[-2]
+    $tmp = $currentUrl -match ".*\/download\/(?<fileVer>.*)\/.*"
+    if ($tmp -eq $false) {
+        Write-Output "ERROR Parsing Version number from url string!"
+        return
+    }
+    $filename = $matches["fileVer"]
 
     if ($lastUrl -ne $currentUrl) {
         Write-Output "`tUpdate required: Remote ver=$filename"
         Write-Debug "`tSecond URL: $currentUrl"
         if (Test-Path $addonPath) {
-            Remove-Item $addonPath -Force -Recurse
-            Remove-Item "$addonPath*" -Force -Recurse
+            Get-ChildItem -Path $addonPath -Recurse -Force | Remove-Item -Force -Recurse
+            Remove-Item $addonPath -Force
         }
         update-addon -url $currentUrl -fileName $filename
-        $currentUrl > $stateFilePath
+        Set-Content -Value $currentUrl -Path $stateFilePath -Force
     }
     else {
         Write-Output "`tAddon up-to-date. Skipping."
@@ -240,7 +251,7 @@ if ($addon -ne "") {
         if ($source -eq $null) {
             $source = "skip"
         }
-        
+
         $expr = "update-$source -name $name -UID $uid"
         Invoke-Expression $expr
     }
@@ -261,13 +272,11 @@ $manifest | ForEach-Object {
     $uid = $_.UID
 
     $name = $name.Replace("'", "``'")
-    
+
     if ($source -eq $null) {
         $source = "skip"
     }
-    
-    $expr = "update-$source -name $name -UID $uid"
-    invoke-expression $expr
-}
 
-PAUSE
+    $expr = "update-$source -name $name -UID $uid"
+    Invoke-Expression $expr
+}
