@@ -9,7 +9,7 @@ pushd %buildDir%
 xcopy ..\code . /s /y /d
 
 :: copy changelog.md and VERSION to builddir
-xcopy ..\changelog.md . /y /d
+:: xcopy ..\changelog.md . /y /d
 xcopy ..\VERSION . /y /d
 
 popd
