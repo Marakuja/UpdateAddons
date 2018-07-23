@@ -110,11 +110,11 @@ function downloadextract-addon {
         $tempFile = $(throw "tempFile required")
     )
 
-    Write-Output "`tDownloading $uri..." -noNewLine
+    Write-Output "`tDownloading $uri..."
     $wc.DownloadFile( $uri, $tempFile )
-    Write-Output "done."
+    Write-Output "`tdone."
 
-    Write-Output "`tExtracting Archive..." -noNewLine
+    Write-Output "`tExtracting Archive..."
     if ($verbose) {
         7z x $tempFile "-o$wowAddonDir" "-y"
     }
@@ -122,11 +122,11 @@ function downloadextract-addon {
         7z x $tempFile "-o$wowAddonDir" "-y" *>$null
     }
 
-    Write-Output "done."
+    Write-Output "`tdone."
 
-    Write-Output "`tDeleting file..." -noNewLine
+    Write-Output "`tDeleting file..."
     Remove-Item $tempFile
-    Write-Output "done."
+    Write-Output "`tdone."
 }
 
 #########################################################################
