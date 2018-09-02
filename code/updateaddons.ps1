@@ -277,6 +277,6 @@ $manifest | ForEach-Object {
         $source = "skip"
     }
 
-    $expr = "update-$source -name $name -UID $uid"
+    $expr = "update-$source -name '$name' -UID '$uid'"
     Invoke-Expression $expr
 }

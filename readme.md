@@ -1,6 +1,6 @@
-# update-addons.ps1 Script
+# Update-Addons (Powershell)
 
-- [update-addons.ps1 Script](#update-addonsps1-script)
+- [Update-Addons (Powershell)](#update-addons-powershell)
   - [A simple script to keep your World of Warcraft Addons up to date](#a-simple-script-to-keep-your-world-of-warcraft-addons-up-to-date)
   - [Usage](#usage)
     - [addons.csv](#addonscsv)
@@ -14,11 +14,13 @@ My script is heavily copied from the ideas from Peter Provost's [update-addons.p
 
 ## Usage
 
+Just run (or double click) the `scripts\build.bat` and you get all the files you need in the `build` directory.
+
 This addon uses a csv file to manage addon information you want to keep updated. This has to be stored in the same path as the `update-addons.ps1` file.
 
-Use `UpdateAddons -scan.bat` to see which addons are currently stored in your WoW/Interface/Addons directory to help you configure the csv file.
+Use `.\updateaddons.ps1 -scan` in powershell to see which addons are currently stored in your WoW/Interface/Addons directory to help you configure the csv file.
 
-To run, execute `update-addons.ps1` in powershell or doubleclick `UpdateAddons.bat`.
+To run, execute `.\update-addons.ps1` in powershell or doubleclick `UpdateAddons.bat`.
 
 ### addons.csv
 
@@ -34,11 +36,18 @@ The data is stored in each line representing the info, seperated by commas:
 | Source | the Website to look for the addon ()              | curseforge, wowi, skip, packaged-with |
 | UID    | the identifier of the addon                       | string in url                         |
 
-e.g. for Weakauras you have the following data in the file (from url: `https://www.curseforge.com/wow/addons/weakauras-2`)
+e.g. for Weakauras you have the following data in the file (from url): `https://www.curseforge.com/wow/addons/weakauras-2`
 
 >Name,Source,UID
 >
 >WeakAuras,curseforge,weakauras-2
+
+e.g. for BigWigs you have the following data in the file (from url):
+`https://wowinterface.com/downloads/info5086-BigWigsBossmods.html`
+
+>Name,Source,UID
+>
+>BigWigs,wowi,5086
 
 See example file in `data\addons.csv`
 
