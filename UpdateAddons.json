@@ -1,6 +1,17 @@
 {
     "version": "1.0.0",
-    "url": "https://github.com/Marakuja/UpdateAddons/archive/develop.zip",
-    "extract_dir": "UpdateAddons-develop",
-    "bin": "UpdateAddons.ps1"
+    "url": "https://github.com/Marakuja/UpdateAddons/archive/master.zip",
+    "extract_dir": "UpdateAddons-master",
+    "bin": "UpdateAddons.ps1",
+    "shorcuts": [
+        [
+            "UpdateAddons.ps1",
+	    "UpdateAddons"
+        ],
+        [
+            "UpdateAddons.ps1",
+            "UpdateAddons -Scan",
+            "-Scan"
+        ]
+    ]
 }
