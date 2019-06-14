@@ -3,7 +3,7 @@
     "url": "https://github.com/Marakuja/UpdateAddons/archive/develop.zip",
     "extract_dir": "UpdateAddons-develop",
     "bin": "UpdateAddons.ps1",
-    "shorcuts": [
+    "shortcuts": [
         [
             "UpdateAddons.ps1",
 	    "UpdateAddons"
