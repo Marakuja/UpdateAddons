@@ -30,7 +30,7 @@ for %%i in (-scan) do (
   if /i "%1"=="%%i" echo %TIME% - Info: Option %%i detected
 )
 :: SCAN
-if "%1"=="-scan" set SCAN= -scan
+if /i "%1"=="-scan" set SCAN= -scan
 
 shift /1
 goto EvalParams
