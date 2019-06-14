@@ -5,11 +5,11 @@
     "bin": "UpdateAddons.ps1",
     "shortcuts": [
         [
-            "UpdateAddons.ps1",
+            "Start_UpdateAddons.bat",
 	    "UpdateAddons"
         ],
         [
-            "UpdateAddons.ps1",
+            "Start_UpdateAddons.bat",
             "UpdateAddons -Scan",
             "-Scan"
         ]
