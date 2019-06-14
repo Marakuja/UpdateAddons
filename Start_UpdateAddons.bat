@@ -26,11 +26,11 @@ goto:eof
 
 :EvalParams
 if "%1"=="" goto NoMoreParams
-for %%i in (-scan -debug) do (
+for %%i in (-scan) do (
   if /i "%1"=="%%i" echo %TIME% - Info: Option %%i detected
 )
 :: SCAN
-if "%1"=="-scan" set SCAN=-scan
+if "%1"=="-scan" set SCAN= -scan
 
 shift /1
 goto EvalParams
@@ -41,7 +41,7 @@ goto:eof
 :: --------------------------------------------
 
 :START_SCRIPT
-PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%~dp0updateaddons.ps1' %SCAN%";
+PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%~dp0UpdateAddons.ps1'%SCAN%"
 goto:eof
 
 endlocal

@@ -20,6 +20,13 @@ Use `.\updateaddons.ps1 -scan` in powershell to see which addons are currently s
 
 To run, execute `.\UpdateAddons.ps1` in powershell or doubleclick `Start_UpdateAddons.bat`.
 
+### scoop
+
+You can also use this script with [scoop](https://scoop.sh/). Just install this script with the
+following command
+
+> scoop install https://github.com/Marakuja/UpdateAddons/blob/master/UpdateAddons.json
+
 ### addons.csv
 
 First line is always the base description:
