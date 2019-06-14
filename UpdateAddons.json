@@ -1,0 +1,5 @@
+{
+    version: "1.0.0",
+    url: "https://raw.githubusercontent.com/Marakuja/UpdateAddons/master/UpdateAddons.ps1",
+    bin: "UpdateAddons.ps1"
+}

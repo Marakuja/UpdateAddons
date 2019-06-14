@@ -14,13 +14,11 @@ My script is heavily copied from the ideas from Peter Provost's [update-addons.p
 
 ## Usage
 
-Just run (or double click) the `scripts\build.bat` and you get all the files you need in the `build` directory.
-
 This addon uses a csv file to manage addon information you want to keep updated. This has to be stored in the same path as the `update-addons.ps1` file.
 
 Use `.\updateaddons.ps1 -scan` in powershell to see which addons are currently stored in your WoW/Interface/Addons directory to help you configure the csv file.
 
-To run, execute `.\update-addons.ps1` in powershell or doubleclick `UpdateAddons.bat`.
+To run, execute `.\UpdateAddons.ps1` in powershell or doubleclick `Start_UpdateAddons.bat`.
 
 ### addons.csv
 
@@ -30,11 +28,11 @@ First line is always the base description:
 
 The data is stored in each line representing the info, seperated by commas:
 
-| field  | description                                       | valid parameters                      |
-| ------ | ------------------------------------------------- | ------------------------------------- |
-| Name   | the Name of the folder you see when used the scan | string                                |
-| Source | the Website to look for the addon ()              | curseforge, wowi, skip, packaged-with |
-| UID    | the identifier of the addon                       | string in url                         |
+| field  | description                                       | valid parameters                              |
+| ------ | ------------------------------------------------- | --------------------------------------------- |
+| Name   | the Name of the folder you see when used the scan | string                                        |
+| Source | the Website to look for the addon                 | curseforge, wowinterface, packaged-with, skip |
+| UID    | the identifier of the addon                       | string in url                                 |
 
 e.g. for Weakauras you have the following data in the file (from url): `https://www.curseforge.com/wow/addons/weakauras-2`
 
@@ -48,18 +46,3 @@ e.g. for BigWigs you have the following data in the file (from url):
 >Name,Source,UID
 >
 >BigWigs,wowi,5086
-
-See example file in `data\addons.csv`
-
-## Project layout
-
-Just as a reference: My projects are laid out like this
-
-| folder  | description                                 |
-| ------- | ------------------------------------------- |
-| build   | output from build.bat                       |
-| code    | all the code files                          |
-| data    | all not code data                           |
-| scripts | all the development scripts, also build.bat |
-
-If you wonder about the `shell.bat`: Read the blog post from Anthony Reddan [here](http://anthonyreddan.com/active-project-shell/). Long story short: It is a way to setup the command line for this project and is only used to get the right path when opening up my dev commandline :).
