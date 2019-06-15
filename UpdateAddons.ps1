@@ -93,18 +93,21 @@ if ($scan) {
     }
 
     Write-Output 'Not configured'
+    Write-Output '--------------'
 
     Get-ChildItem -Path $wowAddonDir | Where-Object {
         $_.PSIsContainer -and $_.Name -notmatch 'Blizzard'
     } | Where-Object {
         -not $set.ContainsKey($_.Name)
     } | ForEach-Object {
-        Write-Output "`t$_"
+        Write-Output "$_"
     }
 
     Write-Output ''
 
     Write-Output 'Not installed'
+    Write-Output '-------------'
+
     $set.Keys | Where-Object {
         -not (Test-Path "$wowAddonDir\$_")
     }
