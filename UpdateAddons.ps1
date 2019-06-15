@@ -5,10 +5,12 @@ Updates World of Warcraft addons to the latest version
 Use UpdateAddons.ps1 with your addons.csv file you have to create and set to the same path as the script or give the ManifestPath Parameter with path information
 .PARAMETER ManifestPath
 Full path to the addons.csv file, defaults to .\addons.csv
-.PARAMETER addon
+.PARAMETER Addon
 [string] addon - only check a specific addon given in your csv, default: empty
-.PARAMETER scan
+.PARAMETER Scan
 Compares the contents of your csv file with your WoW Addons directories, default: false
+.PARAMETER Edit
+Opens addons.csv for editing in the default editor
 .EXAMPLE
 .\UpdateAddons.ps1, .\UpdateAddons.ps1 -scan, .\UpdateAddons.ps1 -addon "BigWigs"
 .NOTES
@@ -34,8 +36,9 @@ Version 0.0.1
 
 param (
     [string]$ManifestPath = (Resolve-Path -Path "$PSScriptRoot\addons.csv" -Erroraction SilentlyContinue),
-    [string]$addon = '',
-    [switch]$scan
+    [string]$Addon = '',
+    [switch]$Scan,
+    [switch]$Edit
 )
 
 # path to the addons.csv
@@ -47,6 +50,13 @@ try {
     throw "You need to create an addons.csv to the script path or provide -ManifestPath Parameter with full Path to file!"
 }
 $Manifest = Import-Csv -Path $ManifestPath -ErrorAction Stop
+
+if ($Edit) {
+    # just open addons.csv and exit
+    Invoke-Expression $ManifestPath
+
+    return
+}
 
 # get current World of Warcraft installation path
 if (Test-Path -Path 'HKLM:\SOFTWARE\Wow6432Node\Blizzard Entertainment\World of Warcraft') {

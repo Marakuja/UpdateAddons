@@ -17,7 +17,7 @@ echo %TIME% - Starting UpdateAddons.bat
 call :EvalParams %*
 call :START_SCRIPT
 echo %TIME% - Leaving UpdateAddons.bat
-pause
+if not defined EDIT pause
 goto:eof
 
 
@@ -26,11 +26,14 @@ goto:eof
 
 :EvalParams
 if "%1"=="" goto NoMoreParams
-for %%i in (-scan) do (
+for %%i in (-scan -edit) do (
   if /i "%1"=="%%i" echo %TIME% - Info: Option %%i detected
 )
 :: SCAN
-if /i "%1"=="-scan" set SCAN= -scan
+if /i "%1"=="-scan" set SCAN= -Scan
+
+:: EDIT
+if /i "%1"=="-edit" set EDIT= -Edit
 
 shift /1
 goto EvalParams
@@ -41,7 +44,7 @@ goto:eof
 :: --------------------------------------------
 
 :START_SCRIPT
-PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%~dp0UpdateAddons.ps1'%SCAN%"
+PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%~dp0UpdateAddons.ps1'%SCAN%%EDIT%"
 goto:eof
 
 endlocal
