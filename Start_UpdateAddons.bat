@@ -9,16 +9,15 @@ setlocal enableextensions
 cd /D "%~dp0"
 
 title %~n0 %*
-set /p VERSION=<%~dp0about\VERSION
 
 :: --------------------------------------------
 
 :MAIN
-echo %TIME% - Starting UpdateAddons.bat (Version %VERSION%)
+echo %TIME% - Starting UpdateAddons.bat
 call :EvalParams %*
 call :START_SCRIPT
 echo %TIME% - Leaving UpdateAddons.bat
-pause
+if not defined EDIT pause
 goto:eof
 
 
@@ -27,13 +26,14 @@ goto:eof
 
 :EvalParams
 if "%1"=="" goto NoMoreParams
-for %%i in (-scan -debug) do (
+for %%i in (-scan -edit) do (
   if /i "%1"=="%%i" echo %TIME% - Info: Option %%i detected
 )
 :: SCAN
-if "%1"=="-scan" set SCAN=-scan
-:: DEBUG
-if "%1"=="-debug" set DEBUG=-DEBUG
+if /i "%1"=="-scan" set SCAN= -Scan
+
+:: EDIT
+if /i "%1"=="-edit" set EDIT= -Edit
 
 shift /1
 goto EvalParams
@@ -44,7 +44,7 @@ goto:eof
 :: --------------------------------------------
 
 :START_SCRIPT
-PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%~dp0updateaddons.ps1' %SCAN% %DEBUG%";
+PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%~dp0UpdateAddons.ps1'%SCAN%%EDIT%"
 goto:eof
 
 endlocal
