@@ -21,6 +21,8 @@ Name,Source,UID
 WeakAuras,curseforge,weakauras-2
 BigWigs,wowi,5086
 
+Version 1.0.1
+    Scoop manifest fixes
 Version 1.0.0
 	Rework of script and repo
         Added scoop installer manifest
