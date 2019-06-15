@@ -23,7 +23,7 @@ BigWigs,wowi,5086
 
 Version 1.0.0
 	Rework of script and repo
-    Added scoop installer manifest
+        Added scoop installer manifest
 Version 0.1.1
 	Fixed bug when addon name is with spaces
 Version 0.1.0
