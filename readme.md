@@ -28,7 +28,7 @@ You can edit the addons.csv directly or call `.\UpdateAddons.ps1 -Edit` or `Star
 You can also use this script with [scoop](https://scoop.sh/). Just install this script with the
 following command
 
-> scoop install https://github.com/Marakuja/UpdateAddons/blob/master/UpdateAddons.json
+> `scoop install https://github.com/Marakuja/UpdateAddons/blob/master/UpdateAddons.json`
 
 You get some preconfigured batch files added to your start menu for easy use.
 
