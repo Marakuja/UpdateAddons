@@ -89,9 +89,9 @@ The data is stored in each line representing the info, seperated by commas:
 
 | field  | description                                       | valid parameters                                |
 | ------ | ------------------------------------------------- | ----------------------------------------------- |
-| Name   | the Name of the folder you see when used the scan | <string> (drom directory)                       |
+| Name   | the Name of the folder you see when used the scan | [string] (drom directory)                       |
 | Source | the Website to look for the addon                 | [curseforge, wowinterface, packaged-with, skip] |
-| UID    | the identifier of the addon                       | <string> (from url)                             |
+| UID    | the identifier of the addon                       | [string] (from url)                             |
 
 ### Source: curseforge
 
@@ -100,7 +100,6 @@ For Weakauras you have the following data in the file (from url):
 `https://www.curseforge.com/wow/addons/weakauras-2`
 
 ```text
-Name,Source,UID
 WeakAuras,curseforge,weakauras-2
 ```
 
@@ -111,7 +110,6 @@ For BigWigs you have the following data in the file (from url):
 `https://wowinterface.com/downloads/info5086-BigWigsBossmods.html`
 
 ```text
-Name,Source,UID
 BigWigs,wowinterface,5086
 ```
 
@@ -128,7 +126,6 @@ AddonDirectory,skip,null
 For AddonDirectories, which are part of a main Addon, you can use the 'packaged-with' source
 
 ```text
-Name,Source,UID
 WeakAuras,curseforge,weakauras-2
 WeakAurasModelPaths,packaged-with,WeakAuras
 WeakAurasOptions,packaged-with,WeakAuras
