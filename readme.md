@@ -11,25 +11,20 @@ My script is heavily copied from the ideas from Peter Provost's
 [update-addons.ps1](https://github.com/PProvost/dotfiles/blob/master/powershell/modules/posh-wow/update-addons.ps1).
 But I updated it to today's websites and tweaked it here and there.
 
-## Usage
+## Installation
 
-This addon uses a csv file to manage addon information you want to keep updated. This has to be
-stored in the same path as the `UpdateAddons.ps1` file.
-
-Use `.\UpdateAddons.ps1 -Scan` in PowerShell to see which addons are currently stored in your
-WoW/_retail/Interface/Addons directory to help you configure the csv file.
-
-To run, execute `.\UpdateAddons.ps1` in powershell or doubleclick `Start_UpdateAddons.bat`.
-
-You can edit the addons.csv directly or call `.\UpdateAddons.ps1 -Edit` or `Start_UpdateAddons.bat
--Edit`.
+Just download the master branch as a zip file or use the zip files listed in the releases category
+of this repo and extract the files on your drive and edit the [addons.csv](#addonscsv). Then you are ready to
+go.
 
 ### scoop
 
 You can also use this script with [scoop](https://scoop.sh/). Just install this script with the
 following command
 
-> `scoop install https://raw.githubusercontent.com/Marakuja/UpdateAddons/master/UpdateAddons.json`
+```text
+scoop install https://raw.githubusercontent.com/Marakuja/UpdateAddons/master/UpdateAddons.json
+```
 
 You get some preconfigured batch files added to your start menu for easy use.
 
@@ -37,7 +32,52 @@ You get some preconfigured batch files added to your start menu for easy use.
 - UpdateAddons -Scan
 - UpdateAddons -Edit
 
-### addons.csv
+## Usage
+
+This addon uses a csv file to manage addon information you want to keep updated. This has to be
+stored in the same path as the `UpdateAddons.ps1` file.
+
+You can call `UpdateAddons.ps1` via PowerShell if script execution is enabled on your pc. Otherwise
+you can use `Start_UpdateAddons.bat` for starting the script without trouble. Parameters can be
+given to either one of the ways in the following way.
+
+### Parameter `-ManifestPath`
+
+You can define another location for your addons.csv. Just put the full path to the file into this
+parameter.
+
+```text
+Update-Addons -ManifestPath "C:\full\path\to\addons.csv"
+```
+
+### Parameter `-Addon`
+
+Just search for and update the Addon name you give to the script. It must be defined in your
+`addons.csv` however.
+
+```text
+Update-Addons -Addon "WeakAuras"
+```
+
+### Parameter `-Scan`
+
+Use this to output which addons are currently stored in your WoW/_retail/Interface/Addons directory
+to help you configure the csv file.
+
+```text
+Update-Addons -Scan
+```
+
+### Parameter `-Edit`
+
+You can edit the `addons.csv` directly with this command. The standard editor for CSV files will be
+called and you can edit the data here.
+
+```text
+Update-Addons -Edit
+```
+
+## addons.csv
 
 First line is always the base description:
 
@@ -53,7 +93,9 @@ The data is stored in each line representing the info, seperated by commas:
 | Source | the Website to look for the addon                 | [curseforge, wowinterface, packaged-with, skip] |
 | UID    | the identifier of the addon                       | <string> (from url)                             |
 
-e.g. for Weakauras you have the following data in the file (from url):
+### Source: curseforge
+
+For Weakauras you have the following data in the file (from url):
 
 `https://www.curseforge.com/wow/addons/weakauras-2`
 
@@ -62,11 +104,33 @@ Name,Source,UID
 WeakAuras,curseforge,weakauras-2
 ```
 
-e.g. for BigWigs you have the following data in the file (from url):
+### Source: wowinterface
+
+For BigWigs you have the following data in the file (from url):
 
 `https://wowinterface.com/downloads/info5086-BigWigsBossmods.html`
 
 ```text
 Name,Source,UID
-BigWigs,wowi,5086
+BigWigs,wowinterface,5086
+```
+
+### Source: skip
+
+For own managed addons (here "AddonDirectory"), you can type the following
+
+```text
+AddonDirectory,skip,null
+```
+
+### Source: packaged-with
+
+For AddonDirectories, which are part of a main Addon, you can use the 'packaged-with' source
+
+```text
+Name,Source,UID
+WeakAuras,curseforge,weakauras-2
+WeakAurasModelPaths,packaged-with,WeakAuras
+WeakAurasOptions,packaged-with,WeakAuras
+WeakAurasTemplates,packaged-with,WeakAuras
 ```
