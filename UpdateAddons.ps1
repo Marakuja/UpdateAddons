@@ -21,6 +21,8 @@ Name,Source,UID
 WeakAuras,curseforge,weakauras-2
 BigWigs,wowi,5086
 
+Version 1.0.2
+    fixed link scraping for curseforge as the site was changed a little
 Version 1.0.1
     Scoop manifest fixes
 Version 1.0.0
@@ -217,7 +219,7 @@ function Update-Curseforge {
 
     $Html = $wc.DownloadString("$UrlBase/wow/addons/$UID/download")
 
-    if ($Html -match '.*class="download__link".*="(?<url>.*)">.*') {
+    if ($Html -match '.*If your download doesn.t start automatically, click <a href="(?<url>.*)">here<\/a>.*') {
         $UrlChild = $matches['url']
         $DownloadUrl = "$UrlBase$UrlChild"
 
