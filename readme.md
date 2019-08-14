@@ -26,11 +26,11 @@ following command
 scoop install https://raw.githubusercontent.com/Marakuja/UpdateAddons/master/UpdateAddons.json
 ```
 
-You get some preconfigured batch files added to your start menu for easy use.
+[//]: # You get some preconfigured batch files added to your start menu for easy use.
 
-- UpdateAddons (main script)
-- UpdateAddons -Scan
-- UpdateAddons -Edit
+[//]: # - UpdateAddons (main script)
+[//]: # - UpdateAddons -Scan
+[//]: # - UpdateAddons -Edit
 
 ## Usage
 
@@ -41,43 +41,42 @@ You can call `UpdateAddons.ps1` via PowerShell if script execution is enabled on
 you can use `Start_UpdateAddons.bat` for starting the script without trouble. Parameters can be
 given to either one of the ways in the following way.
 
-### Parameter `-ManifestPath`
+### Parameter `-ManifestPath[Retail|Classic]`
 
 You can define another location for your addons.csv. Just put the full path to the file into this
 parameter.
 
 ```text
-Update-Addons -ManifestPath "C:\full\path\to\addons.csv"
+Update-Addons -ManifestPathRetail "C:\full\path\to\addons.csv" -ManifestPathClassic
+"C:\another\path\file.csv"
 ```
 
-### Parameter `-Addon`
+[//]: # ### Parameter `-Addon`
 
-Just search for and update the Addon name you give to the script. It must be defined in your
-`addons.csv` however.
+[//]: # Just search for and update the Addon name you give to the script. It must be defined in your `addons.csv` however.
 
-```text
-Update-Addons -Addon "WeakAuras"
-```
+[//]: # ```text
+[//]: # Update-Addons -Addon "WeakAuras"
+[//]: # ```
 
-### Parameter `-Scan`
+[//]: # ### Parameter `-Scan`
 
-Use this to output which addons are currently stored in your WoW/_retail/Interface/Addons directory
-to help you configure the csv file.
+[//]: # Use this to output which addons are currently stored in your WoW/_retail/Interface/Addons directory
+[//]: # to help you configure the csv file.
 
-```text
-Update-Addons -Scan
-```
+[//]: # ```text
+[//]: # Update-Addons -Scan
+[//]: # ```
 
-### Parameter `-Edit`
+[//]: # ### Parameter `-Edit`
 
-You can edit the `addons.csv` directly with this command. The standard editor for CSV files will be
-called and you can edit the data here.
+[//]: # You can edit the `addons.csv` directly with this command. The standard editor for CSV files will be called and you can edit the data here.
 
-```text
-Update-Addons -Edit
-```
+[//]: # ```text
+[//]: # Update-Addons -Edit
+[//]: # ```
 
-## addons.csv
+## addons-[retail|classic].csv
 
 First line is always the base description:
 
