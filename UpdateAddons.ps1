@@ -304,6 +304,8 @@ function UpdateCurseforge {
 function UpdatePackagedWith {
     param (
         [Parameter(Mandatory = $true)]
+        [string]$Version,
+        [Parameter(Mandatory = $true)]
         [string]$Name,
         [Parameter(Mandatory = $true)]
         [string]$UID
@@ -348,8 +350,8 @@ function UpdatePackagedWith {
     output '-------------------------'
     output "WoW Update Addons: $_"
     output ''
-
-    Get-Variable -Name ("Manifest" + $_) -Value | ForEach-Object {
+    
+    (Get-Variable -Name ("Manifest" + $_) -Value) | ForEach-Object {
         $Source = $_.Source
         $Name = $_.Name
         $UID = $_.UID
@@ -358,7 +360,7 @@ function UpdatePackagedWith {
 
         switch ($Source) {
             'wowinterface' {
-                UpdateWowinterface -Version $Version -name $Name -UID $UID
+                UpdateWowinterface -Version $Version -Name $Name -UID $UID
                 break
             }
             'curseforge' {
@@ -367,6 +369,10 @@ function UpdatePackagedWith {
             }
             'packaged-with' {
                 UpdatePackagedWith -Version $Version -Name $Name -UID $UID
+                break
+            }
+            'skip' {
+                output "Skipping file: $Name"
                 break
             }
             default {
