@@ -47,8 +47,8 @@ The data is stored in each line representing the info, seperated by commas:
 
 | field  | description                                       | valid parameters                                |
 | ------ | ------------------------------------------------- | ----------------------------------------------- |
-| Name   | the Name of the folder you see when used the scan | [string] (drom directory)                       |
-| Source | the Website to look for the addon                 | [curseforge, wowinterface, packaged-with, skip] |
+| Name   | the Name of the folder you see when used the scan | [string] (from directory)                       |
+| Source | the Website to look for the addon                 | curseforge, wowinterface, packaged-with, skip   |
 | UID    | the identifier of the addon                       | [string] (from url)                             |
 
 ### Source: curseforge

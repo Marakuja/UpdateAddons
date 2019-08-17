@@ -115,6 +115,7 @@ $wc = New-Object System.Net.WebClient
 $stateFile = 'UpdateAddons.state'
 
 # scan the Interface/Addon directory and compare the contents with the contents of $ManifestPath
+# TODO: needs updating to work with classic too
 if ($scan) {
     $set = @{}
 
