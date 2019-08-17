@@ -3,24 +3,27 @@
 Updates World of Warcraft addons to the latest version
 .DESCRIPTION
 Use UpdateAddons.ps1 with your addons.csv file you have to create and set to the same path as the script or give the ManifestPath Parameter with path information
-.PARAMETER ManifestPath
-Full path to the addons.csv file, defaults to .\addons.csv
-.PARAMETER Addon
-[string] addon - only check a specific addon given in your csv, default: empty
+.PARAMETER ManifestPathRetail
+Full path to the addons-retail.csv file, defaults to .\addons-retail.csv
+.PARAMETER ManifestPathClassic
+Full path to the addons-classic.csv file, default to .\addons-classic.csv
 .PARAMETER Scan
 Compares the contents of your csv file with your WoW Addons directories, default: false
 .PARAMETER Edit
 Opens addons.csv for editing in the default editor
 .EXAMPLE
-.\UpdateAddons.ps1, .\UpdateAddons.ps1 -scan, .\UpdateAddons.ps1 -addon "BigWigs"
+.\UpdateAddons.ps1, .\UpdateAddons.ps1 -scan
 .NOTES
-This script scans your registry for the installation path of World of Warcraft and if everything fails defaults to "C:\Program Files\World of Warcraft\". Please bear in mind, this script is not perfect!
+This script scans your registry for the installation path of World of Warcraft. Please bear in mind, this script is not perfect!
 
 Reading of sample 'addons.csv' (first line has to be like that!!)
 Name,Source,UID
 WeakAuras,curseforge,weakauras-2
 BigWigs,wowi,5086
 
+Version 2.0.0
+    Added classic as new option to manage addons (see addons-classic.csv)
+    Renamed addons.csv to addons-retail.csv
 Version 1.0.2
     fixed link scraping for curseforge as the site was changed a little
 Version 1.0.1
@@ -39,27 +42,48 @@ Version 0.0.1
 #Requires -Version 5
 
 param (
-    [string]$ManifestPath = (Resolve-Path -Path "$PSScriptRoot\addons.csv" -Erroraction SilentlyContinue),
-    [string]$Addon = '',
+    [string]$ManifestPathRetail = (Resolve-Path -Path "$PSScriptRoot\addons-retail.csv" -Erroraction SilentlyContinue),
+    [string]$ManifestPathClassic = (Resolve-Path -path "$PSScriptRoot\addons-classic.csv" -Erroraction SilentlyContinue),
+    #[string]$Addon = '',
     [switch]$Scan,
     [switch]$Edit
 )
 
+function output($msg, $tabs = 0) {
+    Write-Output ("$("`t" * $tabs)$msg")
+}
+function abort($msg, [int]$ExitCode = 1) {
+    $f = $host.ui.RawUI.ForegroundColor
+    $host.ui.RawUI.ForegroundColor = "Red"
+    Write-Output "ERROR $msg"
+    $host.ui.RawUI.ForegroundColor = $f
+    exit $ExitCode
+}
+function success($msg, $tabs = 0) {
+    $f = $host.ui.RawUI.ForegroundColor
+    $host.ui.RawUI.ForegroundColor = "Green"
+    Write-Output ("$("`t" * $tabs)$msg")
+    $host.ui.RawUI.ForegroundColor = $f
+}
+
 # path to the addons.csv
 try {
-    if (-not (Test-Path -Path $ManifestPath)) {
-        throw "You need to create an addons.csv to the script path or provide -ManifestPath Parameter with full Path to file!"
+    if (-not (Test-Path -Path $ManifestPathRetail) -or
+        -not (Test-Path -Path $ManifestPathClassic)) {
+        abort "You need to create an addons[-retail|-classic].csv to the script path or provide -ManifestPath Parameter with full Path to file!"
     }
 } catch {
-    throw "You need to create an addons.csv to the script path or provide -ManifestPath Parameter with full Path to file!"
+    abort "You need to create an addons.csv to the script path or provide -ManifestPath Parameter with full Path to file!"
 }
-$Manifest = Import-Csv -Path $ManifestPath -ErrorAction Stop
+$ManifestRetail = Import-Csv -Path $ManifestPathRetail -ErrorAction Stop
+$ManifestClassic = Import-Csv -Path $ManifestPathClassic -ErrorAction Stop
 
 if ($Edit) {
     # just open addons.csv and exit
-    Invoke-Expression $ManifestPath
+    Start-Process -FilePath 'notepad.exe' -ArgumentList $ManifestPathRetail
+    Start-Process -FilePath 'notepad.exe' -ArgumentList $ManifestPathClassic
 
-    return
+    exit 0
 }
 
 # get current World of Warcraft installation path
@@ -71,49 +95,52 @@ else {
         $wowDir = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Blizzard Entertainment\World of Warcraft').InstallPath
     }
     else {
-        throw "World of Warcraft Installation Path could not be found."
+        abort "World of Warcraft Installation Path could not be found."
     }
 }
-$wowAddonDir = Join-Path -Path $wowDir -ChildPath 'Interface\Addons'
+
+$WowDirRetail = Join-Path -Path (Split-Path -Path $wowDir -Parent) -ChildPath "_retail_"
+$WowAddonDirRetail = Join-Path -Path $WowDirRetail -ChildPath 'Interface\Addons'
+
+$WowDirClassic = Join-Path -Path (Split-Path -Path $wowDir -Parent) -ChildPath "_classic_"
+$WowAddonDirClassic = Join-Path -Path $WowDirClassic -ChildPath 'Interface\Addons'
 
 # temp store location for downloaded files
 $tempDir = Join-Path -Path $env:TEMP -ChildPath 'UpdateAddons'
-if (-not (Test-Path -Path $tempDir)) {
-    New-Item -Path $tempDir -Type Directory | Out-Null
-}
-
+if (-not (Test-Path -Path $tempDir)) { New-Item -Path $tempDir -Type Directory | Out-Null }
 # webclient used for getting the files
 $wc = New-Object System.Net.WebClient
 
 # Name of the file created in every addon directory tracking current version information
-$stateFile = 'PSUpdateAddons.state'
+$stateFile = 'UpdateAddons.state'
 
 # scan the Interface/Addon directory and compare the contents with the contents of $ManifestPath
+# TODO: needs updating to work with classic too
 if ($scan) {
     $set = @{}
 
-    $Manifest | ForEach-Object {
+    $ManifestRetail | ForEach-Object {
         $set[$_.Name] = $true
     }
 
-    Write-Output 'Not configured'
-    Write-Output '--------------'
+    output 'Not configured'
+    output '--------------'
 
-    Get-ChildItem -Path $wowAddonDir | Where-Object {
+    Get-ChildItem -Path $WowAddonDirRetail | Where-Object {
         $_.PSIsContainer -and $_.Name -notmatch 'Blizzard'
     } | Where-Object {
         -not $set.ContainsKey($_.Name)
     } | ForEach-Object {
-        Write-Output "$_"
+        output "$_"
     }
 
-    Write-Output ''
+    output ''
 
-    Write-Output 'Not installed'
-    Write-Output '-------------'
+    output 'Not installed'
+    output '-------------'
 
     $set.Keys | Where-Object {
-        -not (Test-Path "$wowAddonDir\$_")
+        -not (Test-Path "$WowAddonDirRetail\$_")
     }
 
     return
@@ -122,44 +149,57 @@ if ($scan) {
 #########################################################################
 # Update functions
 #
-function Update-Addon {
+function UpdateAddon {
     param (
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('retail', 'classic')]
+        [string]$Version,
         [Parameter(Mandatory = $true)]
         [string]$Url,
         [Parameter(Mandatory = $true)]
         [string]$File
     )
 
-    DownloadExtract-Addon -Url $url -TempFile (Join-Path -Path $tempDir -ChildPath $File)
+    DownloadExtractAddon -Version $Version -Url $url -TempFile (Join-Path -Path $tempDir -ChildPath $File)
 }
 
-function DownloadExtract-Addon {
+function DownloadExtractAddon {
     param (
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('retail', 'classic')]
+        [string]$Version,
         [Parameter(Mandatory = $true)]
         [string]$Url,
         [Parameter(Mandatory = $true)]
         [string]$TempFile
     )
 
-    Write-Output "`tDownloading $Url"
+    output "Downloading $Url" 1
     $wc.DownloadFile( $Url, $TempFile )
-    Write-Output "`t`tdone."
+    success "done." 2
 
-    Write-Output "`tExtracting Archive..."
-    Expand-Archive -Path $TempFile -DestinationPath $wowAddonDir -Force
-    Write-Output "`t`tdone."
+    output "Extracting Archive..." 1
+    if ($Version -eq 'retail') {
+        Expand-Archive -Path $TempFile -DestinationPath $WowAddonDirRetail -Force
+    } elseif ($Version -eq 'classic') {
+        Expand-Archive -Path $TempFile -DestinationPath $WowAddonDirClassic -Force
+    }
+    success "done." 2
 
-    Write-Output "`tDeleting file..."
+    output "Deleting file..." 1
     Remove-Item $TempFile -Force
-    Write-Output "`t`tdone."
+    success "done." 2
 }
 
 #########################################################################
 # Updater functions
 #
 
-function Update-Wowinterface {
+function UpdateWowinterface {
     param (
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('retail', 'classic')]
+        [string]$Version,
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [Parameter(Mandatory = $true)]
@@ -167,13 +207,20 @@ function Update-Wowinterface {
         [string]$urlBase = 'http://www.wowinterface.com'
     )
 
-    Write-Output "$Name - $urlBase - $UID"
+    output "$Name - $urlBase - $UID : $Version"
 
-    $AddonPath = Join-Path -Path $wowAddonDir -ChildPath $Name
-    $StateFilePath = Join-Path -Path $AddonPath -ChildPath $stateFile
-    $LocalVer = ''
-    if (Test-Path -Path $StateFilePath) {
+    # prepare variables
+    $AddonPath = switch($Version) {
+        'retail' { Join-Path -Path $WowAddonDirRetail -ChildPath $Name }
+        'classic' { Join-Path -Path $WowAddonDirClassic -ChildPath $Name }
+    }
+
+    try {
+        $StateFilePath = Join-Path -Path $AddonPath -ChildPath $stateFile -Resolve -Erroraction Stop
         $LocalVer = Get-Content -Path $StateFilePath
+    } catch {
+        $StateFilePath = Join-Path -Path $AddonPath -ChildPath $stateFile
+        $LocalVer = ''
     }
 
     $uri = "$urlBase/patcher$UID.xml"
@@ -184,21 +231,24 @@ function Update-Wowinterface {
     $File = $wowiXml.UpdateUI.Current.UIFile
 
     if ($LocalVer -ne $RemoteVer) {
-        Write-Output "`tUpdate required: Current ver=$LocalVer, Remote ver=$RemoteVer"
+        output "Update required: Current ver=$LocalVer, Remote ver=$RemoteVer" 1
         if (Test-Path -Path $AddonPath) {
             Get-ChildItem -Path $AddonPath -Recurse -Force | Remove-Item -Force -Recurse
             Remove-Item -Path $AddonPath -Force
         }
-        Update-Addon -url $DownloadUrl -File $File
-        Set-Content -Value $RemoteVer -Path $StateFilePath -Force
+        UpdateAddon -Version $Version -Url $DownloadUrl -File $File
+        Set-Content -Path $StateFilePath -Value $RemoteVer
     }
     else {
-        Write-Output "`tAddon up-to-date. Skipping."
+        output "Addon up-to-date. Skipping." 1
     }
 }
 
-function Update-Curseforge {
+function UpdateCurseforge {
     param (
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('retail', 'classic')]
+        [string]$Version,
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [Parameter(Mandatory = $true)]
@@ -206,17 +256,22 @@ function Update-Curseforge {
         [string]$UrlBase = 'http://www.curseforge.com'
     )
 
-    Write-Output "$Name - $urlBase - $UID"
+    output "$Name - $urlBase - $UID : $Version"
 
-    $AddonPath = Join-Path -Path $wowAddonDir -ChildPath $Name
-    $StateFilePath = Join-Path -Path $AddonPath -ChildPath $stateFile
-    $LocalVer = ''
-    if (Test-Path -Path $StateFilePath) {
+    $AddonPath = switch ($Version) {
+        'retail' { Join-Path -Path $WowAddonDirRetail -ChildPath $Name }
+        'classic' { Join-Path -Path $WowAddonDirClassic -ChildPath $Name }
+    }
+
+    try {
+        $StateFilePath = Join-Path -Path $AddonPath -ChildPath $stateFile -Resolve -Erroraction Stop
         $LocalVer = Get-Content -Path $StateFilePath
+    } catch {
+        $StateFilePath = Join-Path -Path $AddonPath -ChildPath $stateFile
+        $LocalVer = ''
     }
 
     # Screenscrape out the links...
-
     $Html = $wc.DownloadString("$UrlBase/wow/addons/$UID/download")
 
     if ($Html -match '.*If your download doesn.t start automatically, click <a href="(?<url>.*)">here<\/a>.*') {
@@ -227,59 +282,61 @@ function Update-Curseforge {
             $RemoteVer = $matches['RemoteVer']
             $File = "$RemoteVer.zip"
         } else {
-            throw "Error while parsing version number from $DownloadUrl"
+            abort "Error while parsing version number from $DownloadUrl"
         }
     } else {
-        throw "Error while parsing curseforge html from '$UrlBase/wow/addons/$UID/download'."
+        abort "Error while parsing curseforge html from '$UrlBase/wow/addons/$UID/download'."
     }
 
     if ($LocalVer -ne $RemoteVer) {
-        Write-Output "`tUpdate required: Current ver=$LocalVer, Remote ver=$RemoteVer"
+        output "Update required: Current ver=$LocalVer, Remote ver=$RemoteVer" 1
         if (Test-Path -Path $AddonPath) {
             Get-ChildItem -Path $AddonPath -Recurse -Force | Remove-Item -Force -Recurse
             Remove-Item $AddonPath -Force
         }
-        Update-Addon -url $DownloadUrl -File $File
-        Set-Content -Value $RemoteVer -Path $StateFilePath -Force
+        UpdateAddon -Version $Version -Url $DownloadUrl -File $File
+        Set-Content -Path $StateFilePath -Value $RemoteVer
     }
     else {
-        Write-Output "`tAddon up-to-date. Skipping."
+        output "Addon up-to-date. Skipping." 1
     }
 }
 
-function Update-PackagedWith {
+function UpdatePackagedWith {
     param (
+        [Parameter(Mandatory = $true)]
+        [string]$Version,
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [Parameter(Mandatory = $true)]
         [string]$UID
     )
 
-    Write-Output "$Name packaged with $UID"
-    Write-Output "`tSkipping..."
+    output "$Name packaged with $UID"
+    output "Skipping..." 1
 }
 
-# Single addon mode: the -addon flag
-if ($addon -ne '') {
-    $Manifest | Where-Object {
-        $_.Name -eq $addon
-    } | ForEach-Object {
-        $source = $_.Source
-        $name = $_.Name
-        $UID = $_.UID
+# # Single addon mode: the -addon flag
+# if ($addon -ne '') {
+#     $ManifestRetail | Where-Object {
+#         $_.Name -eq $addon
+#     } | ForEach-Object {
+#         $Source = $_.Source
+#         $Name = $_.Name
+#         $UID = $_.UID
 
-        $name = $name.Replace("'", "``'")
+#         $Name = $Name.Replace("'", "``'")
 
-        if ($source -eq $null) {
-            $source = 'skip'
-        }
+#         if ($Source -eq $null) {
+#             $Source = 'skip'
+#         }
 
-        $expr = "update-$source -name $name -UID $UID"
-        Invoke-Expression $expr
-    }
+#         $expr = "update-$Source -name $Name -UID $UID"
+#         Invoke-Expression $expr
+#     }
 
-    return
-}
+#     return
+# }
 
 #########################################################################
 # Main processing loop
@@ -288,28 +345,41 @@ if ($addon -ne '') {
 # one of the helper methods defined above.
 #
 
-$Manifest | ForEach-Object {
-    $Source = $_.Source
-    $Name = $_.Name
-    $UID = $_.UID
+@('retail', 'classic') | ForEach-Object {
+    $Version = $_
 
-    $name = $name.Replace("'", "``'")
+    output '-------------------------'
+    output "WoW Update Addons: $_"
+    output ''
+    
+    (Get-Variable -Name ("Manifest" + $_) -Value) | ForEach-Object {
+        $Source = $_.Source
+        $Name = $_.Name
+        $UID = $_.UID
 
-    switch ($Source) {
-        'wowinterface' {
-            Update-Wowinterface -name $name -UID $UID
-            break
-        }
-        'curseforge' {
-            Update-Curseforge -Name $Name -UID  $UID
-            break
-        }
-        'packaged-with' {
-            Update-PackagedWith -Name $Name -UID $UID
-            break
-        }
-        default {
-            break
+        $Name = $Name.Replace("'", "``'")
+
+        switch ($Source) {
+            'wowinterface' {
+                UpdateWowinterface -Version $Version -Name $Name -UID $UID
+                break
+            }
+            'curseforge' {
+                UpdateCurseforge -Version $Version -Name $Name -UID  $UID
+                break
+            }
+            'packaged-with' {
+                UpdatePackagedWith -Version $Version -Name $Name -UID $UID
+                break
+            }
+            'skip' {
+                output "Skipping file: $Name"
+                break
+            }
+            default {
+                output "Unknown source: $Source"
+                break
+            }
         }
     }
 }

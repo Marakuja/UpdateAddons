@@ -1,27 +1,12 @@
 {
     "homepage": "https://github.com/Marakuja/UpdateAddons",
-    "version": "1.0.2",
-    "url": "https://github.com/Marakuja/UpdateAddons/archive/1.0.2.zip",
-    "extract_dir": "UpdateAddons-1.0.2",
+    "version": "2.0.0",
+    "url": "https://github.com/Marakuja/UpdateAddons/archive/2.0.0.zip",
+    "extract_dir": "UpdateAddons-2.0.0",
     "bin": "UpdateAddons.ps1",
     "persist": [
-        "addons.csv"
-    ],
-    "shortcuts": [
-        [
-            "Start_UpdateAddons.bat",
-	    "UpdateAddons"
-        ],
-        [
-            "Start_UpdateAddons.bat",
-            "UpdateAddons -Scan",
-            "-Scan"
-        ],
-        [
-            "Start_UpdateAddons.bat",
-            "UpdateAddons -Edit",
-            "-Edit"
-        ]
+        "addons-retail.csv",
+        "addons-classic.csv"
     ],
     "checkver": "github",
     "autoupdate":  {
