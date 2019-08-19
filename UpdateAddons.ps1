@@ -21,6 +21,8 @@ Name,Source,UID
 WeakAuras,curseforge,weakauras-2
 BigWigs,wowi,5086
 
+Version 2.0.1
+    Fixed bug when classic and/or retail wow is not found
 Version 2.0.0
     Added classic as new option to manage addons (see addons-classic.csv)
     Renamed addons.csv to addons-retail.csv
@@ -160,7 +162,7 @@ function UpdateAddon {
         [string]$File
     )
 
-    DownloadExtractAddon -Version $Version -Url $url -TempFile (Join-Path -Path $tempDir -ChildPath $File)
+    DownloadExtractAddon -Version $Version -Url $Url -TempFile (Join-Path -Path $tempDir -ChildPath $File)
 }
 
 function DownloadExtractAddon {
@@ -204,10 +206,10 @@ function UpdateWowinterface {
         [string]$Name,
         [Parameter(Mandatory = $true)]
         [string]$UID,
-        [string]$urlBase = 'http://www.wowinterface.com'
+        [string]$UrlBase = 'http://www.wowinterface.com'
     )
 
-    output "$Name - $urlBase - $UID : $Version"
+    output "$Name - $UrlBase - $UID : $Version"
 
     # prepare variables
     $AddonPath = switch($Version) {
@@ -223,7 +225,7 @@ function UpdateWowinterface {
         $LocalVer = ''
     }
 
-    $uri = "$urlBase/patcher$UID.xml"
+    $uri = "$UrlBase/patcher$UID.xml"
     $wowiXml = [xml]$wc.DownloadString($uri)
 
     $DownloadUrl = $wowiXml.UpdateUI.Current.UIFileURL
@@ -256,7 +258,7 @@ function UpdateCurseforge {
         [string]$UrlBase = 'http://www.curseforge.com'
     )
 
-    output "$Name - $urlBase - $UID : $Version"
+    output "$Name - $UrlBase - $UID : $Version"
 
     $AddonPath = switch ($Version) {
         'retail' { Join-Path -Path $WowAddonDirRetail -ChildPath $Name }
@@ -302,20 +304,6 @@ function UpdateCurseforge {
     }
 }
 
-function UpdatePackagedWith {
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$Version,
-        [Parameter(Mandatory = $true)]
-        [string]$Name,
-        [Parameter(Mandatory = $true)]
-        [string]$UID
-    )
-
-    output "$Name packaged with $UID"
-    output "Skipping..." 1
-}
-
 # # Single addon mode: the -addon flag
 # if ($addon -ne '') {
 #     $ManifestRetail | Where-Object {
@@ -345,7 +333,17 @@ function UpdatePackagedWith {
 # one of the helper methods defined above.
 #
 
-@('retail', 'classic') | ForEach-Object {
+$temp = @()
+if ((Test-Path -Path $WowDirRetail) -and
+    (Test-Path -Path "$WowDirRetail\wow.exe")) {
+    $temp += 'retail'
+}
+if ((Test-Path -Path $WowDirClassic) -and
+    (Test-Path -Path "$WowDirClassic\wow.exe")) {
+    $temp += 'classic'
+}
+
+$temp | ForEach-Object {
     $Version = $_
 
     output '-------------------------'
@@ -369,11 +367,13 @@ function UpdatePackagedWith {
                 break
             }
             'packaged-with' {
-                UpdatePackagedWith -Version $Version -Name $Name -UID $UID
+                output "$Name packaged with $UID"
+                success "Skipping..." 1
                 break
             }
             'skip' {
                 output "Skipping file: $Name"
+                success "Skipping..." 1
                 break
             }
             default {
