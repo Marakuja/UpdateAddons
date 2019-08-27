@@ -274,21 +274,32 @@ function UpdateCurseforge {
     }
 
     # Screenscrape out the links...
-    $Html = $wc.DownloadString("$UrlBase/wow/addons/$UID/download")
+    $tempProgressPreference = $ProgressPreference
+    $ProgressPreference = "SilentlyContinue"
+    $MainPage = Invoke-WebRequest -Uri "$UrlBase/wow/addons/$UID"
+    $ProgressPreference = $tempProgressPreference
 
-    if ($Html -match '.*If your download doesn.t start automatically, click <a href="(?<url>.*)">here<\/a>.*') {
-        $UrlChild = $matches['url']
-        $DownloadUrl = "$UrlBase$UrlChild"
+    $RemoteVer = foreach ($link in $MainPage.links) {
+        if ($link.innerText -like $(switch ($Version) { 'retail' { 'wow ' } 'classic' { 'wow classic ' } })) {
+            # following link is the data we need
+            $foreach.MoveNext() | Out-Null
+            if ($foreach.Current.href -match '.\/(?<file>\d*)$') {
+                $matches['file']
+            } else {
+                Write-Error "Error while matching curseforge link."
+                return
+            }
 
-        if ($DownloadUrl -match '.*\/download\/(?<RemoteVer>.*)\/.*') {
-            $RemoteVer = $matches['RemoteVer']
-            $File = "$RemoteVer.zip"
-        } else {
-            abort "Error while parsing version number from $DownloadUrl"
         }
-    } else {
-        abort "Error while parsing curseforge html from '$UrlBase/wow/addons/$UID/download'."
     }
+    
+    if (-not $RemoteVer) {
+        output "No addon found for '$Version'. Skipping..."
+        return
+    }
+
+    $DownloadUrl = "$UrlBase/wow/addons/$UID/download/$RemoteVer/file"
+    $File = "$RemoteVer.zip"
 
     if ($LocalVer -ne $RemoteVer) {
         output "Update required: Current ver=$LocalVer, Remote ver=$RemoteVer" 1
