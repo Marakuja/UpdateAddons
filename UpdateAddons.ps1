@@ -280,7 +280,7 @@ function UpdateCurseforge {
             }
         }
     }
-    
+
     if (-not $RemoteVer) {
         Write-Output "No addon found for '$Version'. Skipping..."
         return
@@ -348,7 +348,7 @@ $temp | ForEach-Object {
     Write-Output '-------------------------'
     Write-Output "WoW Update Addons: $_"
     Write-Output ''
-    
+
     (Get-Variable -Name ("Manifest" + $_) -Value) | ForEach-Object {
         $Source = $_.Source
         $Name = $_.Name
