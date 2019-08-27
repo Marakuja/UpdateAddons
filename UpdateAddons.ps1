@@ -42,7 +42,7 @@ Version 0.0.1
 #>
 
 #Requires -Version 5
-
+[CmdletBinding()]
 param (
     [string]$ManifestPathRetail = (Resolve-Path -Path "$PSScriptRoot\addons-retail.csv" -Erroraction SilentlyContinue),
     [string]$ManifestPathClassic = (Resolve-Path -path "$PSScriptRoot\addons-classic.csv" -Erroraction SilentlyContinue),
@@ -89,6 +89,9 @@ $WowAddonDirRetail = Join-Path -Path $WowDirRetail -ChildPath 'Interface\Addons'
 
 $WowDirClassic = Join-Path -Path (Split-Path -Path $wowDir -Parent) -ChildPath "_classic_"
 $WowAddonDirClassic = Join-Path -Path $WowDirClassic -ChildPath 'Interface\Addons'
+
+# resolve some https errors?
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
 
 # temp store location for downloaded files
 $tempDir = Join-Path -Path $env:TEMP -ChildPath 'UpdateAddons'
@@ -165,7 +168,7 @@ function DownloadExtractAddon {
     if (Test-Path -Path $TempFile) {
         Write-Output "`t`tdone."
     } else {
-        Write-Error "No file downloaded. Aborting..."
+        Write-Warning "No file downloaded. Aborting..."
         return
     }
 
@@ -265,9 +268,14 @@ function UpdateCurseforge {
     # Screenscrape out the links...
     $tempProgressPreference = $ProgressPreference
     $ProgressPreference = "SilentlyContinue"
-    $MainPage = Invoke-WebRequest -Uri "$UrlBase/wow/addons/$UID"
+    $MainPage = Invoke-WebRequest -Uri "$UrlBase/wow/addons/$UID/files"
     $ProgressPreference = $tempProgressPreference
 
+    if (-not $MainPage) {
+        return
+    }
+
+    Write-Verbose "Checking remote version..."
     $RemoteVer = foreach ($link in $MainPage.links) {
         if ($link.innerText -like $(switch ($Version) { 'retail' { 'wow ' } 'classic' { 'wow classic ' } })) {
             # following link is the data we need
@@ -280,9 +288,34 @@ function UpdateCurseforge {
             }
         }
     }
-
     if (-not $RemoteVer) {
-        Write-Output "No addon found for '$Version'. Skipping..."
+        Write-Verbose "Fallback to alternative download page scraping..."
+        $tempProgressPreference = $ProgressPreference
+        $ProgressPreference = "SilentlyContinue"
+        $MainPage = Invoke-WebRequest -Uri "$UrlBase/wow/addons/$UID/download"
+        $ProgressPreference = $tempProgressPreference
+
+        if (-not $MainPage) {
+            return
+        }
+
+        Write-Verbose "Checking remote version (alternative)..."
+        $RemoteVer = $MainPage.links | ForEach-Object {
+            if ($_.innerText -like "here") {
+                if ($_.href -match '.*\/(?<file>\d*)\/file') {
+                    $matches['file']
+                } else {
+                    Write-Error "Error while matching cursforge link (alternative)."
+                    return
+                }
+            }
+        }
+    }
+
+    if ($RemoteVer) {
+        Write-Verbose "Got remote version '$RemoteVer'"
+    } else {
+        Write-Warning "No addon found for '$Version'. Skipping..."
         return
     }
 
