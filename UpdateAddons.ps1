@@ -110,8 +110,6 @@ $WowAddonDirClassic = Join-Path -Path $WowDirClassic -ChildPath 'Interface\Addon
 # temp store location for downloaded files
 $tempDir = Join-Path -Path $env:TEMP -ChildPath 'UpdateAddons'
 if (-not (Test-Path -Path $tempDir)) { New-Item -Path $tempDir -Type Directory | Out-Null }
-# webclient used for getting the files
-$wc = New-Object System.Net.WebClient
 
 # Name of the file created in every addon directory tracking current version information
 $stateFile = 'UpdateAddons.state'
@@ -177,7 +175,10 @@ function DownloadExtractAddon {
     )
 
     output "Downloading $Url" 1
-    $wc.DownloadFile( $Url, $TempFile )
+    $tempProgressPreference = $ProgressPreference
+    $ProgressPreference = "SilentlyContinue"
+    Invoke-WebRequest -Uri $Url -OutFile $TempFile
+    $ProgressPreference = $tempProgressPreference
     success "done." 2
 
     output "Extracting Archive..." 1
@@ -226,7 +227,7 @@ function UpdateWowinterface {
     }
 
     $uri = "$UrlBase/patcher$UID.xml"
-    $wowiXml = [xml]$wc.DownloadString($uri)
+    $wowiXml = Invoke-RestMethod -Uri $uri
 
     $DownloadUrl = $wowiXml.UpdateUI.Current.UIFileURL
     $RemoteVer = $wowiXml.UpdateUI.Current.UIVersion
@@ -289,7 +290,6 @@ function UpdateCurseforge {
                 Write-Error "Error while matching curseforge link."
                 return
             }
-
         }
     }
     
