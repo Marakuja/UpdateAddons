@@ -1,8 +1,8 @@
 {
     "homepage": "https://github.com/Marakuja/UpdateAddons",
-    "version": "2.0.0",
-    "url": "https://github.com/Marakuja/UpdateAddons/archive/2.0.0.zip",
-    "extract_dir": "UpdateAddons-2.0.0",
+    "version": "2.1.0",
+    "url": "https://github.com/Marakuja/UpdateAddons/archive/2.1.0.zip",
+    "extract_dir": "UpdateAddons-2.1.0",
     "bin": "UpdateAddons.ps1",
     "persist": [
         "addons-retail.csv",
