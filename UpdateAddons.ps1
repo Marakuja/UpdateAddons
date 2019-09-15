@@ -21,6 +21,8 @@ Name,Source,UID
 WeakAuras,curseforge,weakauras-2
 BigWigs,wowi,5086
 
+Version 2.1.0
+    refined way of linkscraping to catch site updates from curseforge and their way to distinguish between retail and classic versions
 Version 2.0.1
     Fixed bug when classic and/or retail wow is not found
 Version 2.0.0
